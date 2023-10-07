@@ -358,6 +358,7 @@ function DragableTable({ checked, handleCheckbox, data }) {
     const [form, setForm] = React.useState<peopleData[]>(data);
     const draggingItem = React.useRef();
     const dragOverItem = React.useRef();
+    const [page,setPage]=React.useState<number>(1)
     React.useEffect(()=>{
         data.forEach((element:peopleData) => {
             element.status='active'
@@ -410,12 +411,23 @@ function DragableTable({ checked, handleCheckbox, data }) {
 
     const handlePerPageChange = (event: { target: { value: React.SetStateAction<number>; }; }) => {
         setPerPageValue(event.target.value);
+        getData(event.target.value,0)
         
-        axios.get(`machine-test?limit=${event.target.value}`).then((res:any)=>{
-            setForm(res.data.data)
-        }).catch((error:any)=>{console.log(error)})
     };
    
+   const  handleSearch=(pageSelect:number)=>{
+        if(page>1){
+            setPage(page+pageSelect)
+        }
+        let skip=0
+        getData(perPageValue,skip)
+
+    }
+    const getData=(limit:number|any,skip:number)=>{
+        axios.get(`machine-test?limit=${limit}`).then((res:any)=>{
+            setForm(res.data.data)
+        }).catch((error:any)=>{console.log(error)})
+    }
 
     return (
         <>
@@ -535,8 +547,8 @@ function DragableTable({ checked, handleCheckbox, data }) {
                     <Typography sx={{ color: '#84919A', fontSize: 13, fontWeight: 400 }}>Pages</Typography>
                 </Stack>
                 <Stack direction='row' alignItems='center' gap='3px'>
-                    <IconButton sx={{ p: '3px' }}>
-                        <ArrowBackIosNew />
+                    <IconButton onClick={()=>handleSearch(-1)} sx={{ p: '3px' }}>
+                        <ArrowBackIosNew  />
                     </IconButton>
                     <Stack direction='row' alignItems='center' gap='8px'>
                         <Typography sx={{ color: '#84919A', fontSize: 13, fontWeight: 400 }}>Page 2 of 12</Typography>
@@ -545,7 +557,7 @@ function DragableTable({ checked, handleCheckbox, data }) {
                             <TextField InputProps={{ defaultValue: 2 }} sx={{ minWidht: 0, 'input': { p: '5px', width: '50px' } }} type='number' />
                         </Stack>
                     </Stack>
-                    <IconButton sx={{ p: '3px' }}>
+                    <IconButton onClick={()=>handleSearch(1)} sx={{ p: '3px' }}>
                         <ArrowForwardIos />
                     </IconButton>
                 </Stack>
