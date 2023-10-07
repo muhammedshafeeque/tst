@@ -1,11 +1,13 @@
 import * as React from 'react';
+import axios  from '../../Api/axios';
 import {
     Box, Collapse, IconButton, Stack, Table, TableBody, TableCell, TableHead, TableRow, Typography,
     Checkbox as MuiCheckbox, FormControl, Select, MenuItem, TextField,
 } from "@mui/material";
 import {
     AddBox, Category, TripOrigin, DragIndicator, EditNote, ArrowBackIosNew, ArrowForwardIos, KeyboardArrowUp,
-    KeyboardArrowDown
+    KeyboardArrowDown,
+    FourMp
 } from "@mui/icons-material";
 
 
@@ -21,6 +23,7 @@ import DeleteModal from './components/DeleteModal';
 import Filter from './components/Filter';
 
 import welcomeFormImage from '../../assets/images/welcome-image.svg'
+import { peopleData } from '../../models/peopleModal';
 
 const listItems = ['Religion', 'Nationality', 'Section', 'Profession', 'Designation',
     'Class Master', 'Wing'];
@@ -117,6 +120,7 @@ const tableValue = [
         status: null,
     },
 ]
+
 const scrollBarStyle = {
     scrollbarColor: '#D3D3D3 #EBEBEB',
     scrollbarWidth: 'thin',
@@ -137,9 +141,9 @@ export default function MasterForm() {
     const [showFormContainer, setShowFormContainer] = React.useState(true);
     const [showAddForm, setShowAddForm] = React.useState(false);
     const [isChecked, setIsChecked] = React.useState(false);
-    const [selectedForm, setSelectedForm] = React.useState(0);
-    const [tableData, setTableData] = React.useState(tableValue);
-    const [selectedItemIndex, setSelectedItemIndex] = React.useState(null);
+    const [selectedForm, setSelectedForm] = React.useState<number|null>(0);
+    const [tableData, setTableData] = React.useState<peopleData[]>([]);
+    const [selectedItemIndex, setSelectedItemIndex] = React.useState<any>(null);
 
     const handleCheckboxStatus = () => {
         setIsChecked((prev) => !prev);
@@ -149,7 +153,7 @@ export default function MasterForm() {
         setShowAddForm((prev) => !prev);
     }
 
-    const handleChange = (index) => {
+    const handleChange = (index:number) => {
         if (index === selectedForm) {
             setSelectedForm(null);
             return
@@ -158,10 +162,16 @@ export default function MasterForm() {
         // setChecked((prev) => !prev);
     };
 
-    const handleButtonClick = (index) => {
+    const handleButtonClick = (index:number) => {
         setSelectedItemIndex(index);
         // window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+    React.useEffect(()=>{
+        axios.get('machine-test').then((res:any)=>{
+            setTableData(res.data.data)
+        }).catch((error:any)=>{console.log(error)})
+    },[])
+ 
 
     return (
         <Stack direction='row' p='14px' gap={1} height='calc(100vh - 110px)'>
@@ -176,14 +186,14 @@ export default function MasterForm() {
                     </Box>
                     <Box p='15px 10px' m='10px' mb='20px' border='1px solid #E7EAF3'>
                         <Box>
-                            <SearchTextField placeholder='Search' />
+                            <SearchTextField placeholder='Search' width={undefined} style={undefined} />
                         </Box>
                     </Box>
                     <Stack pb={5} sx={{ borderTop: '1px solid #DDE2E4' }}>
                         {formValue.map((data, index) => (
                             <div key={index}>
                                 <StyledFormButton onClick={() => handleChange(index)}>
-                                    <StyledLetterAvatar bgcolor={data.iconColor}>R</StyledLetterAvatar>
+                                    <StyledLetterAvatar color={data.iconColor}>R</StyledLetterAvatar>
                                     <Stack>
                                         <Typography sx={{ fontSize: 15, color: '#252525', fontWeight: 700, textAlign: 'start' }}>
                                             {data.name}
@@ -343,21 +353,27 @@ const dropDowndata = [
 ];
 
 function DragableTable({ checked, handleCheckbox, data }) {
-    const [form, setForm] = React.useState(data);
+    const [form, setForm] = React.useState<peopleData[]>(data);
     const draggingItem = React.useRef();
     const dragOverItem = React.useRef();
-
-    const handleStatusChange = (value, index) => {
+    React.useEffect(()=>{
+        data.forEach((element:peopleData) => {
+            element.status='active'
+            form.push(element)
+        });
+        
+    },[data])
+    const handleStatusChange = (value: any, index: number) => {
         let updatedForm = [...form];
         updatedForm[index].status = value;
         setForm(updatedForm);
     };
 
-    const handleDragStart = (e, position) => {
+    const handleDragStart = (e: React.DragEvent<HTMLTableRowElement>, position: number | undefined) => {
         draggingItem.current = position;
         // console.log(e.target.innerHTML);
     };
-    const handleDragEnter = (e, position) => {
+    const handleDragEnter = (e: React.DragEvent<HTMLTableRowElement>, position: number | undefined) => {
         // console.log('Entering handleDragEnter');
         // console.log('draggingItem.current:', draggingItem.current);
         // console.log('dragOverItem.current:', dragOverItem.current);
@@ -377,7 +393,7 @@ function DragableTable({ checked, handleCheckbox, data }) {
         // console.log('Exiting handleDragEnter');
     };
 
-    const handleDragEnd = (e) => {
+    const handleDragEnd = (e: any) => {
         const listCopy = [...form];
         const draggingItemContent = listCopy[draggingItem.current];
         listCopy.splice(draggingItem.current, 1);
@@ -390,9 +406,10 @@ function DragableTable({ checked, handleCheckbox, data }) {
 
     const [perPageValue, setPerPageValue] = React.useState(10);
 
-    const handlePerPageChange = (event) => {
+    const handlePerPageChange = (event: { target: { value: React.SetStateAction<number>; }; }) => {
         setPerPageValue(event.target.value);
     };
+   
 
     return (
         <>
@@ -444,7 +461,7 @@ function DragableTable({ checked, handleCheckbox, data }) {
                             </TableCell>
                         </TableRow>
                     ) : (
-                        form.map((item, index) => (
+                        form.map((item:peopleData, index:number) => (
                             <TableRow
                                 draggable
                                 onDragStart={(e) => handleDragStart(e, index)}
@@ -459,7 +476,7 @@ function DragableTable({ checked, handleCheckbox, data }) {
                                     <DragIndicator sx={{ fontSize: 27, color: '#DDE2E4', cursor: 'grab' }} />
                                 </TableCell>
                                 <TableCell sx={{ width: '80px' }}><MuiCheckbox checked={checked} /> </TableCell>
-                                <TableCell>{item.name}</TableCell>
+                                <TableCell>{item.first_name}</TableCell>
                                 <TableCell>
                                     <Box sx={{ minWidth: 120 }}>
 
