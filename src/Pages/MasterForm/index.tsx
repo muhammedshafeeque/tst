@@ -135,7 +135,9 @@ const scrollBarStyle = {
         borderRadius: '4px',
     },
 }
-
+const getData=(limit:number,offset:number)=>{
+    
+}
 
 export default function MasterForm() {
     const [showFormContainer, setShowFormContainer] = React.useState(true);
@@ -408,6 +410,10 @@ function DragableTable({ checked, handleCheckbox, data }) {
 
     const handlePerPageChange = (event: { target: { value: React.SetStateAction<number>; }; }) => {
         setPerPageValue(event.target.value);
+        
+        axios.get(`machine-test?limit=${event.target.value}`).then((res:any)=>{
+            setForm(res.data.data)
+        }).catch((error:any)=>{console.log(error)})
     };
    
 
